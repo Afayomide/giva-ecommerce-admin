@@ -41,6 +41,22 @@ declare global {
   }
 }
 
+const allowedOrigins = process.env.CORS_ORIGINS?.split(",") || [];
+
+app.use(
+  cors({
+    origin: (origin:any, callback:any) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+
 app.use(helmet());
 
 if (process.env.NODE_ENV === "development") {
@@ -63,12 +79,8 @@ app.use(mongoSanitize());
 app.use(xss());
 
 app.use(compression());
-const corsOption = {
-  origin: ["http://localhost:3000"],
-  credentials:true
-};
 
-app.use(cors(corsOption));
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
