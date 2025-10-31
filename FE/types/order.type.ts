@@ -7,7 +7,7 @@ import { ICustomer } from "./customer.type";
 import { IProduct } from "./product.type";
 
 export interface IProductItem {
-  product: IProduct;
+  product?: IProduct;
   quantity: number;
   price: number;
   size?: string;

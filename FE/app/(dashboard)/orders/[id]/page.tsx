@@ -178,30 +178,57 @@ export default function OrderDetailsPage() {
             <CardContent>
               {order.items.length > 0 ? (
                 <div className="divide-y divide-gray-200">
-                  {order.items.map((item, idx) => (
-                    <Link
-                      href={`/products/${item.product._id}`}
-                      key={idx}
-                      className="flex flex-col sm:flex-row gap-4 py-4 items-center sm:items-start"
-                    >
-                      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md border">
-                        <img
-                          src={item.product?.images?.[0] || "/placeholder.jpg"}
-                          alt={item.product?.name || "Product"}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 space-y-1 text-sm">
-                        <p className="font-semibold">{item.product?.name}</p>
-                        {item.size && <p>Size: {item.size}</p>}
-                        {item.color && <p>Color: {item.color}</p>}
-                        <p>Quantity: {item.quantity}</p>
-                      </div>
-                      <div className="text-right font-semibold text-base">
-                        ₦{item.price.toFixed(2)}
-                      </div>
-                    </Link>
-                  ))}
+                  {order.items.map((item, idx) => {
+                    if (!item.product) {
+                      return (
+                        <div
+                          key={idx}
+                          className="flex flex-col sm:flex-row gap-4 py-4 items-center sm:items-start text-muted-foreground"
+                        >
+                          <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md border bg-gray-100 flex items-center justify-center">
+                            <p className="text-xs text-center">
+                              Product not available
+                            </p>
+                          </div>
+                          <div className="flex-1 space-y-1 text-sm">
+                            <p className="font-semibold">
+                              This product is no longer available.
+                            </p>
+                            <p>Quantity: {item.quantity}</p>
+                          </div>
+                          <div className="text-right font-semibold text-base">
+                            ₦{item.price.toFixed(2)}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <Link
+                        href={`/products/${item.product._id}`}
+                        key={idx}
+                        className="flex flex-col sm:flex-row gap-4 py-4 items-center sm:items-start"
+                      >
+                        <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md border">
+                          <img
+                            src={
+                              item.product?.images?.[0] || "/placeholder.jpg"
+                            }
+                            alt={item.product?.name || "Product"}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 space-y-1 text-sm">
+                          <p className="font-semibold">{item.product?.name}</p>
+                          {item.size && <p>Size: {item.size}</p>}
+                          {item.color && <p>Color: {item.color}</p>}
+                          <p>Quantity: {item.quantity}</p>
+                        </div>
+                        <div className="text-right font-semibold text-base">
+                          ₦{item.price.toFixed(2)}
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-muted-foreground text-sm">
