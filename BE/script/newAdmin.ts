@@ -18,7 +18,7 @@ const createAdmin = async () => {
   try {
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({
-      email: "daraseyi086@gmail.com",
+      email: "admin@dagoddesigns.com",
     });
 
     if (existingAdmin) {
@@ -32,7 +32,7 @@ const createAdmin = async () => {
     // Create new admin
     const admin = await Admin.create({
       name: "Admin User",
-      email: "daraseyi086@gmail.com",
+      email: "admin@dagoddesigns.com",
       password: hashedPassword, // Use hashed password
       role: "super-admin",
     });
