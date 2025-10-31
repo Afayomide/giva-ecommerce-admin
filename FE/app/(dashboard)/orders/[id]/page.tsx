@@ -32,7 +32,7 @@ export default function OrderDetailsPage() {
         if (!res.ok) throw new Error("Failed to fetch order");
         const data = await res.json();
         setOrder(data.data.order);
-        console.log(data.data)
+        console.log(data.data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -88,103 +88,137 @@ export default function OrderDetailsPage() {
   };
 
   return (
-  <div className="space-y-8 animate-in fade-in duration-500">
-    {/* Header */}
-    <div className="flex justify-between items-center">
-      <h1 className="text-2xl font-bold tracking-tight">Order Details</h1>
-      <Button variant="outline" onClick={() => history.back()}>
-        ← Back
-      </Button>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Header */}
+      {order && (
+        <>
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold tracking-tight">Order Details</h1>
+            <Button variant="outline" onClick={() => history.back()}>
+              ← Back
+            </Button>
+          </div>
+
+          {/* Order Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                Order Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-1">
+                <p>
+                  <strong>Order ID:</strong> {order._id}
+                </p>
+                <p>
+                  <strong>Customer:</strong> {order.user?.fullname || "N/A"}
+                </p>
+                <p>
+                  <strong>Email:</strong> {order.email}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {order.address.phone}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p>
+                  <strong>Order Date:</strong>{" "}
+                  {format(order.createdAt, "MMM dd, yyyy")}
+                </p>
+                <p>
+                  <strong>Payment Ref:</strong>{" "}
+                  {order.paymentReference || "N/A"}
+                </p>
+                <div>
+                  <strong>Payment Status:</strong>{" "}
+                  <Badge className={getPaymentColor(order.paymentStatus)}>
+                    {order.paymentStatus}
+                  </Badge>
+                </div>
+                <div>
+                  <strong>Order Status:</strong>{" "}
+                  <Badge className={getStatusColor(order.status)}>
+                    {order.status}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Shipping Address */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                Shipping Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm leading-relaxed">
+              <div className="space-y-1">
+                <p>
+                  {order.address.firstName} {order.address.lastName}
+                </p>
+                <p>{order.address.address}</p>
+                <p>
+                  {order.address.city}, {order.address.state}
+                </p>
+                <p>
+                  {order.address.country} - {order.address.zipCode}
+                </p>
+                <p>{order.address.phone}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Items */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {order.items.length > 0 ? (
+                <div className="divide-y divide-gray-200">
+                  {order.items.map((item, idx) => (
+                    <Link
+                      href={`/products/${item.product._id}`}
+                      key={idx}
+                      className="flex flex-col sm:flex-row gap-4 py-4 items-center sm:items-start"
+                    >
+                      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md border">
+                        <img
+                          src={item.product?.images?.[0] || "/placeholder.jpg"}
+                          alt={item.product?.name || "Product"}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1 text-sm">
+                        <p className="font-semibold">{item.product?.name}</p>
+                        {item.size && <p>Size: {item.size}</p>}
+                        {item.color && <p>Color: {item.color}</p>}
+                        <p>Quantity: {item.quantity}</p>
+                      </div>
+                      <div className="text-right font-semibold text-base">
+                        ₦{item.price.toFixed(2)}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No items in this order.
+                </p>
+              )}
+
+              <Separator className="my-4" />
+
+              <div className="flex justify-between font-semibold text-lg">
+                <span>Total</span>
+                <span>₦{order.total.toFixed(2)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
-
-    {/* Order Summary */}
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Order Summary</CardTitle>
-      </CardHeader>
-      <CardContent className="grid md:grid-cols-2 gap-4 text-sm">
-        <div className="space-y-1">
-          <p><strong>Order ID:</strong> {order._id}</p>
-          <p><strong>Customer:</strong> {order.user?.fullname || "N/A"}</p>
-          <p><strong>Email:</strong> {order.email}</p>
-          <p><strong>Phone:</strong> {order.address.phone}</p>
-        </div>
-        <div className="space-y-1">
-          <p><strong>Order Date:</strong> {format(order.createdAt, "MMM dd, yyyy")}</p>
-          <p><strong>Payment Ref:</strong> {order.paymentReference || "N/A"}</p>
-          <div>
-            <strong>Payment Status:</strong>{" "}
-            <Badge className={getPaymentColor(order.paymentStatus)}>
-              {order.paymentStatus}
-            </Badge>
-          </div>
-          <div>
-            <strong>Order Status:</strong>{" "}
-            <Badge className={getStatusColor(order.status)}>
-              {order.status}
-            </Badge>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-
-    {/* Shipping Address */}
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Shipping Address</CardTitle>
-      </CardHeader>
-      <CardContent className="text-sm leading-relaxed">
-        <div className="space-y-1">
-          <p>{order.address.firstName} {order.address.lastName}</p>
-          <p>{order.address.address}</p>
-          <p>{order.address.city}, {order.address.state}</p>
-          <p>{order.address.country} - {order.address.zipCode}</p>
-          <p>{order.address.phone}</p>
-        </div>
-      </CardContent>
-    </Card>
-
-    {/* Order Items */}
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Items</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {order.items.length > 0 ? (
-          <div className="divide-y divide-gray-200">
-            {order.items.map((item, idx) => (
-              <Link href={`/products/${item.product._id}`} key={idx} className="flex flex-col sm:flex-row gap-4 py-4 items-center sm:items-start">
-                <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-md border">
-                  <img
-                    src={item.product?.images?.[0] || "/placeholder.jpg"}
-                    alt={item.product?.name || "Product"}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 space-y-1 text-sm">
-                  <p className="font-semibold">{item.product?.name}</p>
-                  {item.size && <p>Size: {item.size}</p>}
-                  {item.color && <p>Color: {item.color}</p>}
-                  <p>Quantity: {item.quantity}</p>
-                </div>
-                <div className="text-right font-semibold text-base">
-                  ₦{item.price.toFixed(2)}
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-sm">No items in this order.</p>
-        )}
-
-        <Separator className="my-4" />
-
-        <div className="flex justify-between font-semibold text-lg">
-          <span>Total</span>
-          <span>₦{order.total.toFixed(2)}</span>
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-);
+  );
 }
