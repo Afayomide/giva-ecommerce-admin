@@ -6,7 +6,7 @@ import { Admin } from "../models/admin.model";
 // Connect to MongoDB
 mongoose
   .connect(
-    ""
+    "mongodb+srv://daraseyi086_db_user:yqMZZzrOtZBLGGHc@cluster0.0nhkro5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   )
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
@@ -18,7 +18,7 @@ const createAdmin = async () => {
   try {
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({
-      email: "daraseyi086@gmail.com",
+      email: "admin@dagoddesigns.com",
     });
 
     if (existingAdmin) {
@@ -27,12 +27,12 @@ const createAdmin = async () => {
     }
 
     // Hash the password
-    const hashedPassword = await bcrypt.hash("Vestord33#", 10);
+    const hashedPassword = await bcrypt.hash("dmcnb&#$8dFH", 10);
 
     // Create new admin
     const admin = await Admin.create({
       name: "Admin User",
-      email: "daraseyi086@gmail.com",
+      email: "admin@dagoddesigns.com",
       password: hashedPassword, // Use hashed password
       role: "super-admin",
     });

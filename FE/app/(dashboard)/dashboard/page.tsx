@@ -59,14 +59,17 @@ export default function DashboardPage() {
       });
 
       // Fetch recent orders
-      const ordersResponse = await axios.get(`${API_URL}/dashboard/recent-orders`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminAuth")}`,
-        },
-      });
+      const ordersResponse = await axios.get(
+        `${API_URL}/dashboard/recent-orders`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminAuth")}`,
+          },
+        }
+      );
 
       setDashboardStats(statsResponse.data.data);
-setRecentOrders(ordersResponse.data?.data.orders.slice(0, 10) || []);
+      setRecentOrders(ordersResponse.data?.data.orders.slice(0, 10) || []);
       console.log(ordersResponse);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -332,7 +335,7 @@ setRecentOrders(ordersResponse.data?.data.orders.slice(0, 10) || []);
                       `${name} ${(percent * 100).toFixed(0)}%`
                     }
                   >
-                    {productCategoryData.map((index:any) => (
+                    {productCategoryData.map((index: any) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
