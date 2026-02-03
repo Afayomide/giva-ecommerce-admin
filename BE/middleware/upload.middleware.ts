@@ -1,6 +1,7 @@
 import multer from "multer"
 import path from "path"
 import fs from "fs"
+import os from "os"
 import type { Request } from "express"
 
 // Custom error class
@@ -21,7 +22,8 @@ class AppError extends Error {
 // Set storage engine
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), "uploads")
+    // Use system temp directory for Vercel/Serverless support
+    const uploadPath = path.join(os.tmpdir(), "uploads")
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true })
     }
