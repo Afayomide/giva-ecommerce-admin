@@ -1,5 +1,6 @@
 import multer from "multer"
 import path from "path"
+import fs from "fs"
 import type { Request } from "express"
 
 // Custom error class
@@ -20,7 +21,11 @@ class AppError extends Error {
 // Set storage engine
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/")
+    const uploadPath = path.join(process.cwd(), "uploads")
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true })
+    }
+    cb(null, uploadPath)
   },
   filename: (req, file, cb) => {
     cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`)

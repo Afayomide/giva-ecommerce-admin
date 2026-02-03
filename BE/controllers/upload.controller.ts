@@ -30,11 +30,8 @@ export const uploadProductImage = async (req: Request, res: Response, next: Next
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "godswears/products",
       use_filename: true,
+      timeout: 120000,
     })
-
-
-    // Remove file from server after upload
-    fs.unlinkSync(req.file.path)
 
     res.status(200).json({
       status: "success",
@@ -45,6 +42,11 @@ export const uploadProductImage = async (req: Request, res: Response, next: Next
     })
   } catch (error) {
     next(error)
+  } finally {
+    // Remove file from server after upload or error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path)
+    }
   }
 }
 
