@@ -174,10 +174,6 @@ export const updateProduct = async (
       return next(new AppError("No product found with that ID", 404));
     }
 
-    // Remove any image fields from request body to prevent tampering
-    delete req.body.image;
-    delete req.body.images;
-
     // Update only other fields
     for (const key in req.body) {
       if (Object.prototype.hasOwnProperty.call(req.body, key)) {

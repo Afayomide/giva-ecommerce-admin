@@ -9,8 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { Pencil, Save, X } from "lucide-react";
+import { Pencil, Save, X, Upload } from "lucide-react";
 import { IProduct } from "@/types/product.type";
+import axios from "axios";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -18,6 +21,9 @@ export default function ProductDetailsPage() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchProduct();
@@ -57,6 +63,66 @@ export default function ProductDetailsPage() {
     setProduct({ ...product, [name]: arr });
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!product) return;
+    const files = e.target.files;
+    if (!files) return;
+
+    const formData = new FormData();
+    Array.from(files).forEach((file) => formData.append("image", file));
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const token = localStorage.getItem("adminAuth");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!token || !apiUrl) return;
+
+      const response = await axios.post(
+        `${apiUrl}/upload/product-image`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const total = progressEvent.total || progressEvent.loaded;
+            const progress = Math.round((progressEvent.loaded * 100) / total);
+            setUploadProgress(progress);
+          },
+        }
+      );
+
+      const data = response.data;
+      const newImageUrl = data.data.url;
+      
+      setProduct((prev) => {
+        if (!prev) return null;
+        return {
+            ...prev,
+            images: [...prev.images, newImageUrl]
+        }
+      });
+
+      toast({
+        title: "Image uploaded",
+        description: "Don't forget to save changes.",
+      });
+
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to upload images. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
  
  const handleSave = async () => {
    if (!product) return;
@@ -67,8 +133,8 @@ export default function ProductDetailsPage() {
      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
      if (!token || !apiUrl) return;
 
-     // Exclude images and any unwanted fields
-     const { images, createdAt, updatedAt, __v, ...rest } = product;
+     // Exclude unnecessary fields but KEEP images
+     const { createdAt, updatedAt, __v, ...rest } = product;
 
      // Convert arrays or objects to plain JSON-safe data
      const cleanProduct: Record<string, any> = {};
@@ -92,8 +158,17 @@ export default function ProductDetailsPage() {
 
      setEditing(false);
      await fetchProduct();
+     toast({
+        title: "Success",
+        description: "Product updated successfully",
+      });
    } catch (err) {
      console.error("Error updating product:", err);
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      });
    } finally {
      setSaving(false);
    }
@@ -114,6 +189,13 @@ export default function ProductDetailsPage() {
       </div>
     );
   }
+
+  const handleRemoveImage = (index: number) => {
+    if (!product) return;
+    const newImages = [...product.images];
+    newImages.splice(index, 1);
+    setProduct({ ...product, images: newImages });
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -189,7 +271,7 @@ export default function ProductDetailsPage() {
           </div>
 
           <div className="space-y-3">
-            <label className="block font-medium">Price</label>
+            <label className="block font-medium">Price (₦)</label>
             <Input
               type="number"
               name="price"
@@ -197,7 +279,7 @@ export default function ProductDetailsPage() {
               onChange={handleChange}
               disabled={!editing}
             />
-            <label className="block font-medium">Discount Price</label>
+            <label className="block font-medium">Discount Price (₦)</label>
             <Input
               type="number"
               name="discountPrice"
@@ -239,19 +321,57 @@ export default function ProductDetailsPage() {
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {product.images.map((img, idx) => (
-              <div key={idx} className="relative w-full aspect-square">
+              <div key={idx} className="relative w-full aspect-square group">
                 <Image
                   src={img || "/placeholder.jpg"}
                   alt={`Product ${idx}`}
                   fill
                   className="rounded-lg object-cover border"
                 />
+                {editing && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
 
-          {/* Don't show upload field in edit mode */}
-          {/* If you ever want to re-enable image uploads, you can reintroduce this safely */}
+          {editing && (
+            <div className="mt-6 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <Input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  disabled={isUploading}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="flex flex-col items-center justify-center cursor-pointer"
+                >
+                  <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                  <span className="text-sm font-medium">
+                    Drag & drop images here or click to browse
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    Supports JPG, PNG, WEBP (Max 5MB each)
+                  </span>
+                </label>
+                 {isUploading && (
+                  <div className="mt-4 space-y-2">
+                    <Progress value={uploadProgress} className="w-full" />
+                    <p className="text-sm text-center text-muted-foreground">Uploading... {uploadProgress}%</p>
+                  </div>
+                )}
+             </div>
+          )}
         </CardContent>
       </Card>
 

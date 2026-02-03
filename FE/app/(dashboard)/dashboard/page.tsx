@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ShoppingBag,
   Users,
-  DollarSign,
+  Banknote,
   Package,
   TrendingUp,
   TrendingDown,
@@ -180,11 +180,11 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${dashboardStats.sales?.totalRevenue?.toFixed(2) || "0.00"}
+              ₦{dashboardStats.sales?.totalRevenue?.toFixed(2) || "0.00"}
             </div>
             <p className="text-xs text-muted-foreground">
               <span
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`$${value}`, "Revenue"]} />
+                  <Tooltip formatter={(value) => [`₦${value}`, "Revenue"]} />
                   <Bar dataKey="sales" fill="#3b82f6" />
                 </BarChart>
               </ResponsiveContainer>

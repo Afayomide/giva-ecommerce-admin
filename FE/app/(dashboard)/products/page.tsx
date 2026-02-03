@@ -170,10 +170,10 @@ export default function ProductsPage() {
   // ✅ Get unique categories and types dynamically from products
   const uniqueCategories = Array.from(
     new Set(products.flatMap((p) => p.categories || []))
-  );
+  ).filter((cat) => cat !== "");
   const uniqueTypes = Array.from(
     new Set(products.flatMap((p) => p.types || []))
-  );
+  ).filter((type) => type !== "");
 
   return (
     <div className="space-y-6 animate-in">
@@ -339,7 +339,7 @@ export default function ProductsPage() {
                         {product.types?.length ? product.types.join(", ") : "—"}
                       </TableCell>
                       <TableCell className="text-right">
-                        ${product.price.toFixed(2)}
+                        ₦{product.price.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
                         {product.quantity}

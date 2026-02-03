@@ -25,11 +25,15 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, ArrowLeft, Upload, X } from "lucide-react";
+import axios from "axios";
+import { Progress } from "@/components/ui/progress";
 
 export default function AddProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
   const existingCategories = ["ankara", "aso-oke", "dansiki", "lace"];
   const existingTypes = ["fabric", "clothing", "accessory", "footwear"];
@@ -169,19 +173,27 @@ export default function AddProductPage() {
     const formData = new FormData();
     Array.from(files).forEach((file) => formData.append("image", file));
 
+    setIsUploading(true);
+    setUploadProgress(0);
+
     try {
-      const response = await fetch(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/upload/product-image`,
+        formData,
         {
-          method: "POST",
-          headers: { Authorization: `Bearer ${getAuthToken()}` },
-          body: formData,
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const total = progressEvent.total || progressEvent.loaded;
+            const progress = Math.round((progressEvent.loaded * 100) / total);
+            setUploadProgress(progress);
+          },
         }
       );
 
-      if (!response.ok) throw new Error("Failed to upload images");
-
-      const data = await response.json();
+      const data = response.data;
       setUploadedImageUrls((prev) => [...prev, data.data.url]);
       setImages((prev) => [
         ...prev,
@@ -194,6 +206,9 @@ export default function AddProductPage() {
         description: "Failed to upload images. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -406,7 +421,7 @@ export default function AddProductPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="price">Price ($)</Label>
+                    <Label htmlFor="price">Price (₦)</Label>
                     <Input
                       id="price"
                       type="number"
@@ -503,6 +518,7 @@ export default function AddProductPage() {
                       multiple
                       className="hidden"
                       onChange={handleImageUpload}
+                      disabled={isUploading}
                     />
                     <Label
                       htmlFor="image-upload"
@@ -517,6 +533,13 @@ export default function AddProductPage() {
                       </span>
                     </Label>
                   </div>
+                  
+                  {isUploading && (
+                    <div className="space-y-2">
+                        <Progress value={uploadProgress} className="w-full" />
+                        <p className="text-sm text-center text-muted-foreground">Uploading... {uploadProgress}%</p>
+                    </div>
+                  )}
 
                   {images.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
@@ -549,7 +572,7 @@ export default function AddProductPage() {
                 >
                   Previous
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || isUploading}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
